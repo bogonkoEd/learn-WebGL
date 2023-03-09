@@ -1,3 +1,6 @@
+import "./style.css";
+import * as THREE from "three";
+
 //SCENE
 const scene = new THREE.Scene();
 
