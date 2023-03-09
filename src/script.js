@@ -4,24 +4,48 @@ import * as THREE from "three";
 //SCENE
 const scene = new THREE.Scene();
 
-//Object
-const geometry = new THREE.BoxGeometry(1, 1, 1);
+//OBJECTS
+const group = new THREE.Group();
+group.position.y = -1;
+group.scale.y = 1.5;
+group.rotation.y = 0.675;
+scene.add(group);
 
-const material = new THREE.MeshBasicMaterial({ color: 0x0000ff });
+const cube1 = new THREE.Mesh(
+  new THREE.BoxGeometry(1, 1, 1),
+  new THREE.MeshBasicMaterial({ color: 0x00ff00 })
+);
+group.add(cube1);
 
-const mesh = new THREE.Mesh(geometry, material);
+const cube2 = new THREE.Mesh(
+  new THREE.BoxGeometry(1, 1, 1),
+  new THREE.MeshBasicMaterial({ color: 0xff0000 })
+);
+cube2.position.x = -3;
+group.add(cube2);
 
-scene.add(mesh);
+const cube3 = new THREE.Mesh(
+  new THREE.BoxGeometry(1, 1, 1),
+  new THREE.MeshBasicMaterial({ color: 0x0000ff })
+);
+cube3.position.x = 3;
+group.add(cube3);
+
+//AXES HELPER
+const axesHelper = new THREE.AxesHelper();
+scene.add(axesHelper);
 
 //SIZES
 const sizes = {
-  width: 1080,
-  height: 720,
+  width: 960,
+  height: 640,
 };
 
 //CAMERA
-const camera = new THREE.PerspectiveCamera(65, sizes.width / sizes.height);
-camera.position.z = 3;
+const camera = new THREE.PerspectiveCamera(90, sizes.width / sizes.height);
+camera.position.set(-1, -1, 3);
+//LOOK AT FUNCTION
+
 scene.add(camera);
 
 //RENDERER
