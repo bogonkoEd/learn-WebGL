@@ -1,7 +1,22 @@
 import "./style.css";
 import * as THREE from "three";
 import gsap from "gsap";
+import * as dat from "dat.gui";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import { MeshBasicMaterial } from "three";
+
+//GUI
+const gui = new dat.GUI();
+gui.hide();
+
+const parameters = {
+  color: 0x0000ff,
+};
+
+gui.addColor(parameters, "color").onChange(() => {
+  cube1.material.color.set(parameters.color);
+});
+
 //CURSOR
 const cursor = {
   x: 0,
@@ -23,35 +38,93 @@ group.scale.y = 1.5;
 group.rotation.y = 0.675;
 scene.add(group);
 
+//NEW BUFFER GEOMETRY
+const geometry = new THREE.BufferGeometry();
+const count = 52;
+const positionsArray = new Float32Array(count * 3 * 3);
+for (let i = 0; i < count * 3 * 3; i++) {
+  positionsArray[i] = (Math.random() - 0.5) * 4;
+}
+const positionsAttribute = new THREE.BufferAttribute(positionsArray, 3);
+geometry.setAttribute("position", positionsAttribute);
+const material = new THREE.MeshBasicMaterial({
+  color: 0x0000ff,
+  wireframe: true,
+});
+
+// const mesh = new THREE.Mesh(geometry, material);
+// scene.add(mesh);
+
 const cube1 = new THREE.Mesh(
   new THREE.BoxGeometry(1, 1, 1),
-  new THREE.MeshBasicMaterial({ color: 0x00ff00 })
+  new THREE.MeshBasicMaterial({ color: parameters.color })
 );
 group.add(cube1);
 
 const cube2 = new THREE.Mesh(
   new THREE.BoxGeometry(1, 1, 1),
-  new THREE.MeshBasicMaterial({ color: 0xff0000 })
+  new THREE.MeshBasicMaterial({ color: parameters.color, wireframe: true })
 );
 cube2.position.x = -3;
 group.add(cube2);
 
 const cube3 = new THREE.Mesh(
   new THREE.BoxGeometry(1, 1, 1),
-  new THREE.MeshBasicMaterial({ color: 0x0000ff })
+  new THREE.MeshBasicMaterial({ color: parameters.color })
 );
 cube3.position.x = 3;
 group.add(cube3);
+
+//GUI CONTROLS
+gui.add(group.position, "y").min(-3).max(3).step(0.05).name("elevation");
 
 //AXES HELPER
 const axesHelper = new THREE.AxesHelper();
 scene.add(axesHelper);
 
-//SIZES
+//WINDOW SIZES
 const sizes = {
-  width: 960,
-  height: 640,
+  width: window.innerWidth,
+  height: innerHeight,
 };
+//RESIZE EVENT
+window.addEventListener("resize", () => {
+  //Update Sizes
+  sizes.width = window.innerWidth;
+  sizes.height = window.innerHeight;
+
+  //Update Camera Aspect Ratio
+  camera.aspect = sizes.width / sizes.height;
+
+  //Update Camera
+  camera.updateProjectionMatrix();
+
+  //Update Renderer
+  renderer.setSize(sizes.width, sizes.height);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+  console.log("window resized");
+});
+
+//Full Screen double click function
+window.addEventListener("dblclick", () => {
+  const fullscreenElement =
+    document.fullscreenElement || document.webkitFullscreenElement;
+
+  if (!fullscreenElement) {
+    if (canvas.requestFullscreen) {
+      canvas.requestFullscreen();
+    } else if (canvas.webkitRequestFullscreen) {
+      canvas.webkitRequestFullscreen();
+    }
+  } else {
+    if (document.exitFullscreen) {
+      document.exitFullscreen();
+    } else if (document.webkitExitFullscreen) {
+      document.webkitExitFullscreen();
+    }
+  }
+});
 
 //CAMERA
 
@@ -85,6 +158,7 @@ const renderer = new THREE.WebGLRenderer({
   canvas: canvas,
 });
 renderer.setSize(sizes.width, sizes.height);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.render(scene, camera);
 
 //CONTROLS
