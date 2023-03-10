@@ -55,3 +55,24 @@ const renderer = new THREE.WebGLRenderer({
 });
 renderer.setSize(sizes.width, sizes.height);
 renderer.render(scene, camera);
+
+//ANIMATION
+const clock = new THREE.Clock();
+
+const loop = () => {
+  //TIMING
+  const deltaTime = clock.getElapsedTime();
+
+  console.log(deltaTime);
+  //New Frame
+  window.requestAnimationFrame(loop);
+  //Update Objects Position
+  group.rotation.y = deltaTime;
+  group.position.y = Math.sin(deltaTime);
+  group.position.z = Math.cos(deltaTime);
+
+  camera.lookAt(group.position);
+  //New Object Render
+  renderer.render(scene, camera);
+};
+loop();
