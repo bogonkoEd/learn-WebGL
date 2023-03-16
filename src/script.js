@@ -15,6 +15,8 @@ loading.onLoad = () => {
 };
 
 const textureLoader = new THREE.TextureLoader(loading);
+const cubeTextureLoader = new THREE.CubeTextureLoader(loading);
+
 const alphaTexture = textureLoader.load("/textures/door/alpha.jpg");
 const ambientTexture = textureLoader.load(
   "/textures/door/ambientOcclusion.jpg"
@@ -25,11 +27,62 @@ const metalnessTexture = textureLoader.load("/textures/door/metalness.jpg");
 const roughnessTexture = textureLoader.load("/textures/door/roughness.jpg");
 const colorTexture = textureLoader.load("/textures/minecraft.png");
 const matcapTexture = textureLoader.load("/textures/matcaps/7.png");
-const gradientTexture = textureLoader.load("/textures/gradients/3.jpg");
+const gradientTexture = textureLoader.load("/textures/gradients/5.jpg");
+gradientTexture.minFilter = THREE.NearestFilter;
+gradientTexture.magFilter = THREE.NearestFilter;
+gradientTexture.generateMipmaps = false;
 
-colorTexture.rotation = Math.PI * 0.25;
-colorTexture.center.x = 0.5;
-colorTexture.center.y = 0.5;
+const environmentMapTexture = cubeTextureLoader.load([
+  "/textures/environmentMaps/3/px.jpg",
+  "/textures/environmentMaps/3/nx.jpg",
+  "/textures/environmentMaps/3/py.jpg",
+  "/textures/environmentMaps/3/ny.jpg",
+  "/textures/environmentMaps/3/pz.jpg",
+  "/textures/environmentMaps/3/nz.jpg",
+]);
+
+//FONTS
+const fontLoader = new THREE.FontLoader();
+const matcapText = textureLoader.load("/textures/matcaps/8.png");
+
+fontLoader.load("/fonts/helvetiker_regular.typeface.json", (font) => {
+  const textGeometry = new THREE.TextBufferGeometry("NDANI YA COCKPIT", {
+    font,
+    size: 0.6,
+    height: 0.3,
+    curveSegments: 6,
+    bevelEnabled: true,
+    bevelThickness: 0.03,
+    bevelSize: 0.02,
+    bevelOffset: 0,
+    bevelSegments: 2,
+  });
+  textGeometry.center();
+
+  const elementMaterial = new THREE.MeshMatcapMaterial({
+    matcap: matcapText,
+  });
+  const text = new THREE.Mesh(textGeometry, elementMaterial);
+
+  scene.add(text);
+
+  const element = new THREE.TorusBufferGeometry(0.25, 0.2, 15, 45);
+
+  for (let i = 0; i < 121; i++) {
+    const ring = new THREE.Mesh(element, elementMaterial);
+
+    ring.position.set(
+      (Math.random() - 0.5) * 10,
+      (Math.random() - 0.5) * 10,
+      (Math.random() - 0.5) * 10
+    );
+
+    ring.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, 0);
+    const scale = Math.random();
+    ring.scale.set(scale, scale, scale);
+    scene.add(ring);
+  }
+});
 
 // Using NearestFilter will make the texture look pixelated and is better for performance than LinearFilter
 colorTexture.minFilter = THREE.NearestFilter;
@@ -37,7 +90,6 @@ colorTexture.magFilter = THREE.NearestFilter;
 
 //GUI
 const gui = new dat.GUI();
-gui.hide();
 
 const parameters = {
   color: 0x0000ff,
@@ -65,7 +117,7 @@ const group = new THREE.Group();
 group.position.y = -1;
 group.scale.y = 1.5;
 group.rotation.y = 0.675;
-scene.add(group);
+// scene.add(group);
 
 //NEW BUFFER GEOMETRY
 const geometry = new THREE.BufferGeometry();
@@ -75,51 +127,85 @@ for (let i = 0; i < count * 3 * 3; i++) {
   positionsArray[i] = (Math.random() - 0.5) * 4;
 }
 //NEW BUFFER ATTRIBUTE - MeshBasicMaterial
-const positionsAttribute = new THREE.BufferAttribute(positionsArray, 3);
-geometry.setAttribute("position", positionsAttribute);
-const material = new THREE.MeshBasicMaterial({
-  color: 0x0000ff, // material.color.set(parameters.color);
-  map: colorTexture, // material.map = colorTexture;
-  wireframe: false, // material.wireframe = false;
-  opacity: 0.5, // material.opacity = 0.5;
-  transparent: true, // material.transparent = true;
-  // alphaMap: alphaTexture, // material.alphaMap = alphaTexture;
-  // side: THREE.DoubleSide, // material.side = THREE.DoubleSide;
-});
+// const positionsAttribute = new THREE.BufferAttribute(positionsArray, 3);
+// geometry.setAttribute("position", positionsAttribute);
+// const material = new THREE.MeshBasicMaterial({
+//   color: 0x0000ff, // material.color.set(parameters.color);
+//   map: colorTexture, // material.map = colorTexture;
+//   wireframe: false, // material.wireframe = false;
+//   opacity: 0.5, // material.opacity = 0.5;
+//   transparent: true, // material.transparent = true;
+// alphaMap: alphaTexture, // material.alphaMap = alphaTexture;
+// side: THREE.DoubleSide, // material.side = THREE.DoubleSide;
+//});
 
-//NEW BUFFER ATTRIBUTE - MeshNormalMaterial - This is the default material for lighting fx
-const material1 = new THREE.MeshNormalMaterial({
-  color: 0x0000ff, // material.color.set(parameters.color);
-  map: colorTexture, // material.map = colorTexture;
-  wireframe: false, // material.wireframe = false;
-  opacity: 0.5, // material.opacity = 0.5;
-  transparent: true, // material.transparent = true;
-  // alphaMap: alphaTexture, // material.alphaMap = alphaTexture;
-  // side: THREE.DoubleSide, // material.side = THREE.DoubleSide;
-});
+// //NEW BUFFER ATTRIBUTE - MeshNormalMaterial - This is the default material for lighting fx
+// const material1 = new THREE.MeshNormalMaterial({
+//   wireframe: false, // material.wireframe = false;
+//   opacity: 0.5, // material.opacity = 0.5;
+//   transparent: true, // material.transparent = true;
+//   // alphaMap: alphaTexture, // material.alphaMap = alphaTexture;
+//   // side: THREE.DoubleSide, // material.side = THREE.DoubleSide;
+//   flatShading: true, // material.flatShading = true;
+// });
+
+// //NEW BUFFER ATTRIBUTE - MeshMatcapMaterial
+// const material2 = new THREE.MeshMatcapMaterial({
+//   matcap: matcapTexture, // material.matcap = matcapTexture;
+// });
+
+// //NEW BUFFER ATTRIBUTE - MeshDepthMaterial
+// const material3 = new THREE.MeshDepthMaterial({});
+
+// //NEW BUFFER ATTRIBUTE - MeshLambertMaterial
+// const material4 = new THREE.MeshLambertMaterial({});
+
+// //NEW BUFFER ATTRIBUTE - MeshPhongMaterial
+// const material5 = new THREE.MeshPhongMaterial({
+//   shininess: 1000, // material.shininess = 100;
+//   specular: 0x0000ff, // material.specular = 0x0000ff;
+// });
+
+// //NEW BUFFER ATTRIBUTE - MeshToonMaterial
+// const material6 = new THREE.MeshToonMaterial({
+//   gradientMap: gradientTexture, // material.gradientMap = gradientTexture;
+//   map: colorTexture, // material.map = colorTexture;
+// });
+
+// //NEW BUFFER ATTRIBUTE - MeshStandardMaterial
+// const material7 = new THREE.MeshStandardMaterial({
+//   map: colorTexture, // material.map = colorTexture;
+//   metalness: 0.7, // material.metalness = 0.7;
+//   roughness: 0.2, // material.roughness = 0.2;
+//   envMap: environmentMapTexture, // material.envMap = environmentMapTexture;
+// });
+
+// gui.add(material7, "metalness").min(0).max(1).step(0.0001).name("metalness");
+// gui.add(material7, "roughness").min(0).max(1).step(0.0001).name("roughness");
+// gui
+//   .add(material7, "displacementScale")
+//   .min(0)
+//   .max(1)
+//   .step(0.0001)
+//   .name("displacementScale");
 
 // const mesh = new THREE.Mesh(geometry, material);
 // scene.add(mesh);
 
-const cube1 = new THREE.Mesh(
-  new THREE.SphereBufferGeometry(1, 32, 32),
-  material1
-);
+const cube1 = new THREE.Mesh(new THREE.SphereBufferGeometry(1, 64, 64));
 cube1.position.x = -3;
 group.add(cube1);
 
-const cube2 = new THREE.Mesh(
-  new THREE.PlaneBufferGeometry(1, 1, 2, 2),
-  material1
+const cube2 = new THREE.Mesh(new THREE.PlaneBufferGeometry(1, 1, 96, 96));
+cube2.geometry.setAttribute(
+  "uv2",
+  new THREE.BufferAttribute(cube2.geometry.attributes.uv.array, 2)
 );
 
 cube2.position.x = 0;
 group.add(cube2);
 
-const cube3 = new THREE.Mesh(
-  new THREE.TorusBufferGeometry(0.3, 0.25, 16, 32),
-  material1
-);
+const cube3 = new THREE.Mesh(new THREE.TorusBufferGeometry(0.3, 0.25, 64, 128));
 cube3.position.x = 3;
 group.add(cube3);
 
@@ -129,6 +215,16 @@ gui.add(group.position, "y").min(-3).max(3).step(0.05).name("elevation");
 //AXES HELPER
 const axesHelper = new THREE.AxesHelper();
 scene.add(axesHelper);
+
+//LIGHTS
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+scene.add(ambientLight);
+
+const pointLight = new THREE.PointLight(0xffffff, 0.5);
+pointLight.position.x = 2;
+pointLight.position.y = 3;
+pointLight.position.z = 4;
+scene.add(pointLight);
 
 //WINDOW SIZES
 const sizes = {
