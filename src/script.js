@@ -26,7 +26,7 @@ const normalTexture = textureLoader.load("/textures/door/normal.jpg");
 const metalnessTexture = textureLoader.load("/textures/door/metalness.jpg");
 const roughnessTexture = textureLoader.load("/textures/door/roughness.jpg");
 const colorTexture = textureLoader.load("/textures/minecraft.png");
-const matcapTexture = textureLoader.load("/textures/matcaps/7.png");
+const matcapTexture = textureLoader.load("/textures/matcaps/8.png");
 const gradientTexture = textureLoader.load("/textures/gradients/5.jpg");
 gradientTexture.minFilter = THREE.NearestFilter;
 gradientTexture.magFilter = THREE.NearestFilter;
@@ -59,10 +59,14 @@ fontLoader.load("/fonts/helvetiker_regular.typeface.json", (font) => {
   });
   textGeometry.center();
 
-  const elementMaterial = new THREE.MeshMatcapMaterial({
-    matcap: matcapText,
+  const elementMaterial = new THREE.MeshStandardMaterial({
+    map: colorTexture,
+    metalness: 0.5,
   });
+
   const text = new THREE.Mesh(textGeometry, elementMaterial);
+
+  text.castShadow = true;
 
   scene.add(text);
 
@@ -80,8 +84,24 @@ fontLoader.load("/fonts/helvetiker_regular.typeface.json", (font) => {
     ring.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, 0);
     const scale = Math.random();
     ring.scale.set(scale, scale, scale);
+
+    ring.castShadow = true;
+
     scene.add(ring);
   }
+
+  //FLOOR
+  const floor = new THREE.PlaneBufferGeometry(10, 10);
+  const floorMaterial = new THREE.MeshStandardMaterial({
+    map: colorTexture,
+    color: 0xffffff,
+  });
+  const floorMesh = new THREE.Mesh(floor, floorMaterial);
+  floorMesh.rotation.x = -Math.PI * 0.5;
+  floorMesh.position.y = -1;
+
+  floorMesh.receiveShadow = true;
+  scene.add(floorMesh);
 });
 
 // Using NearestFilter will make the texture look pixelated and is better for performance than LinearFilter
@@ -220,11 +240,39 @@ scene.add(axesHelper);
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
 scene.add(ambientLight);
 
-const pointLight = new THREE.PointLight(0xffffff, 0.5);
-pointLight.position.x = 2;
-pointLight.position.y = 3;
-pointLight.position.z = 4;
-scene.add(pointLight);
+const directionalLight = new THREE.DirectionalLight(0xffffff, 0.75);
+directionalLight.position.set(2, 2, 3);
+scene.add(directionalLight);
+
+//SHADOWS
+directionalLight.castShadow = true;
+
+// const hemisphereLight = new THREE.HemisphereLight(0xff0000, 0x0000ff, 0.35);
+// scene.add(hemisphereLight);
+
+// const pointLight = new THREE.PointLight(0x0090ff, 0.5, 28, 2);
+// pointLight.position.set(1, 1, 0.5);
+// scene.add(pointLight);
+
+// const rectLight = new THREE.RectAreaLight(0x4e00ff, 2, 1, 1);
+// rectLight.position.set(-2, 0, 1);
+// rectLight.lookAt(THREE.Vector3());
+// scene.add(rectLight);
+
+// const spotLight = new THREE.SpotLight(0xf60000, 1, 10, Math.PI * 0.15, 0.1, 1);
+// spotLight.position.set(0, 0.5, 5.5);
+// scene.add(spotLight);
+
+// spotLight.target.position.y = -2;
+// scene.add(spotLight.target);
+
+//LIGHT HELPER
+// const spotLightHelper = new THREE.SpotLightHelper(spotLight);
+// scene.add(spotLightHelper);
+
+// window.requestAnimationFrame(() => {
+//   spotLightHelper.update;
+// });
 
 //WINDOW SIZES
 const sizes = {
@@ -303,6 +351,9 @@ const renderer = new THREE.WebGLRenderer({
 });
 renderer.setSize(sizes.width, sizes.height);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+renderer.shadowMap.enabled = true;
+
 renderer.render(scene, camera);
 
 //CONTROLS
@@ -316,26 +367,29 @@ controls.enableDamping = true;
 const clock = new THREE.Clock();
 const loop = () => {
   //TIMING
-  const deltaTime = clock.getElapsedTime();
+  const animate = () => {
+    // Update the positions, rotations, and scales of the rings
+    scene.traverse((object) => {
+      if (object instanceof THREE.Mesh) {
+        if (object.geometry.type === "TorusBufferGeometry") {
+          object.rotation.x += 0.01;
+          object.rotation.y += 0.02;
+          object.scale.set(
+            Math.sin(Date.now() * 0.001) * 0.2 + 0.8,
+            Math.sin(Date.now() * 0.001) * 0.2 + 0.8,
+            Math.sin(Date.now() * 0.001) * 0.2 + 0.8
+          );
+        }
+      }
+    });
 
-  //New Frame
-  window.requestAnimationFrame(loop);
-  //Update Camera Position
-  // camera.position.x = Math.sin(cursor.x * Math.PI * 2) * 3;
-  // camera.position.z = Math.cos(cursor.x * Math.PI * 2) * 3;
-  // camera.position.y = cursor.y * 6;
+    // Render the scene
+    renderer.render(scene, camera);
 
-  //Update Camera Controls
-  controls.update();
+    // Request the next frame of animation
+    requestAnimationFrame(animate);
+  };
 
-  camera.lookAt(group.position);
-  //Update Objects Position
-  group.rotation.y = deltaTime;
-  // group.position.y = Math.sin(deltaTime);
-  // group.position.z = Math.cos(deltaTime);
-
-  camera.lookAt(group.position);
-  //New Object Render
-  renderer.render(scene, camera);
+  animate();
 };
 loop();
