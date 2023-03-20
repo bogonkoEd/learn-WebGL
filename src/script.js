@@ -372,8 +372,8 @@ const loop = () => {
     scene.traverse((object) => {
       if (object instanceof THREE.Mesh) {
         if (object.geometry.type === "TorusBufferGeometry") {
-          object.rotation.x += 0.01;
-          object.rotation.y += 0.02;
+          object.rotation.x += 0.01 * Math.sin(Date.now() * 0.001);
+          object.rotation.y += 0.02 * Math.sin(Date.now() * 0.001);
           object.scale.set(
             Math.sin(Date.now() * 0.001) * 0.2 + 0.8,
             Math.sin(Date.now() * 0.001) * 0.2 + 0.8,
