@@ -67,6 +67,7 @@ fontLoader.load("/fonts/helvetiker_regular.typeface.json", (font) => {
   const text = new THREE.Mesh(textGeometry, elementMaterial);
 
   text.castShadow = true;
+  text.receiveShadow = true;
 
   scene.add(text);
 
@@ -86,6 +87,7 @@ fontLoader.load("/fonts/helvetiker_regular.typeface.json", (font) => {
     ring.scale.set(scale, scale, scale);
 
     ring.castShadow = true;
+    ring.receiveShadow = true;
 
     scene.add(ring);
   }
@@ -234,18 +236,29 @@ gui.add(group.position, "y").min(-3).max(3).step(0.05).name("elevation");
 
 //AXES HELPER
 const axesHelper = new THREE.AxesHelper();
+axesHelper.visible = false;
 scene.add(axesHelper);
 
 //LIGHTS
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
 scene.add(ambientLight);
 
-const directionalLight = new THREE.DirectionalLight(0xffffff, 0.75);
-directionalLight.position.set(2, 2, 3);
+const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+directionalLight.position.set(0, 2, 3);
 scene.add(directionalLight);
 
 //SHADOWS
 directionalLight.castShadow = true;
+directionalLight.shadow.mapSize.width = 1024;
+directionalLight.shadow.mapSize.height = 1024;
+directionalLight.shadow.camera.far = 10;
+
+const directionalLightCameraHelper = new THREE.CameraHelper(
+  directionalLight.shadow.camera
+);
+
+directionalLightCameraHelper.visible = false;
+scene.add(directionalLightCameraHelper);
 
 // const hemisphereLight = new THREE.HemisphereLight(0xff0000, 0x0000ff, 0.35);
 // scene.add(hemisphereLight);
@@ -259,20 +272,32 @@ directionalLight.castShadow = true;
 // rectLight.lookAt(THREE.Vector3());
 // scene.add(rectLight);
 
-// const spotLight = new THREE.SpotLight(0xf60000, 1, 10, Math.PI * 0.15, 0.1, 1);
-// spotLight.position.set(0, 0.5, 5.5);
-// scene.add(spotLight);
+const spotLight = new THREE.SpotLight(0xfff000, 2, 10, Math.PI * 0.15, 0.1, 1);
+spotLight.position.set(0, 3.5, 5.5);
+spotLight.castShadow = true;
+spotLight.shadow.mapSize.width = 1024;
+spotLight.shadow.mapSize.height = 1024;
+spotLight.shadow.camera.far = 10;
+spotLight.shadow.camera.fov = 30;
+spotLight.shadow.camera.near = 5;
+spotLight.shadow.camera.far = 10;
+spotLight.shadow.camera.left = -1;
+spotLight.shadow.camera.right = 1;
+spotLight.shadow.camera.top = 6;
+spotLight.shadow.camera.bottom = -6;
 
-// spotLight.target.position.y = -2;
-// scene.add(spotLight.target);
+scene.add(spotLight);
+
+scene.add(spotLight.target);
 
 //LIGHT HELPER
-// const spotLightHelper = new THREE.SpotLightHelper(spotLight);
-// scene.add(spotLightHelper);
+const spotLightHelper = new THREE.CameraHelper(spotLight.shadow.camera);
+spotLightHelper.visible = true;
+scene.add(spotLightHelper);
 
-// window.requestAnimationFrame(() => {
-//   spotLightHelper.update;
-// });
+window.requestAnimationFrame(() => {
+  spotLightHelper.update;
+});
 
 //WINDOW SIZES
 const sizes = {
@@ -338,7 +363,7 @@ const camera = new THREE.PerspectiveCamera(
 //   30 //Far
 // );
 
-camera.position.set(0, 0, 3);
+camera.position.set(0, 3.5, 5.5);
 
 //LOOK AT FUNCTION
 
@@ -353,6 +378,7 @@ renderer.setSize(sizes.width, sizes.height);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
 renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
 renderer.render(scene, camera);
 
